@@ -12,11 +12,11 @@ var auth = jwt({secret: 'SECRET', userProperty: 'payload'});
 
 
 /* GET home page. */
-router.get('/', function(req, res) {
+router.get('/', function (req, res) {
   res.render('index');
 });
 
-router.get('/posts', function(req, res, next) {
+router.get('/posts', function (req, res, next) {
   Post.find(function(err, posts){
     if(err){ 
       return next(err);
@@ -26,18 +26,18 @@ router.get('/posts', function(req, res, next) {
   });
 });
 
-router.post('/posts', auth, function(req, res, next) {
+router.post('/posts', auth, function (req, res, next) {
   var post = new Post(req.body);
   post.author = req.payload.username;
 
-  post.save(function(err, post){
+  post.save(function (err, post){
     if(err){ return next(err); }
 
     res.json(post);
   });
 });
 
-router.param('post', function(req, res, next, id) {
+router.param('post', function (req, res, next, id) {
   var query = Post.findById(id);
 
   query.exec(function (err, post){
@@ -49,7 +49,7 @@ router.param('post', function(req, res, next, id) {
   });
 });
 
-router.param('comment', function(req, res, next, id) {
+router.param('comment', function (req, res, next, id) {
   var query = Comment.findById(id);
 
   query.exec(function (err, comment){
@@ -61,13 +61,13 @@ router.param('comment', function(req, res, next, id) {
   });
 });
 
-router.get('/posts/:post', function(req, res, next) {
-  req.post.populate('comments', function(err, post) {
+router.get('/posts/:post', function (req, res, next) {
+  req.post.populate('comments', function (err, post) {
     res.json(post);
   });
 });
 
-router.put('/posts/:post/upvote', auth, function(req, res, next) {
+router.put('/posts/:post/upvote', auth, function (req, res, next) {
   req.post.upvote(function(err, post){
     if (err) { return next(err); }
 
@@ -75,7 +75,7 @@ router.put('/posts/:post/upvote', auth, function(req, res, next) {
   });
 });
 
-router.put('/posts/:post/downvote', auth, function(req, res, next) {
+router.put('/posts/:post/downvote', auth, function (req, res, next) {
   req.post.downvote(function(err, post){
     if (err) { return next(err); }
 
@@ -83,11 +83,13 @@ router.put('/posts/:post/downvote', auth, function(req, res, next) {
   });
 });
 
-router.post('/posts/:post/comments', auth, function(req, res, next) {
+
+router.post('/posts/:post/comments', auth, function (req, res, next) {
+
   var comment = new Comment(req.body);
   comment.post = req.post;
   comment.author = req.payload.username;
-  
+
   comment.save(function(err, comment){
     if(err){ return next(err); }
 
@@ -100,7 +102,7 @@ router.post('/posts/:post/comments', auth, function(req, res, next) {
   });
 });
 
-router.put('/posts/:post/comments/:comment/upvote', auth, function(req, res, next) {
+router.put('/posts/:post/comments/:comment/upvote', auth, function (req, res, next) {
   req.comment.upvote(function(err, comment){
     if (err) { return next(err); }
 
@@ -108,7 +110,7 @@ router.put('/posts/:post/comments/:comment/upvote', auth, function(req, res, nex
   });
 });
 
-router.put('/posts/:post/comments/:comment/downvote', auth, function(req, res, next) {
+router.put('/posts/:post/comments/:comment/downvote', auth, function (req, res, next) {
   req.comment.downvote(function(err, comment){
     if (err) { return next(err); }
 
@@ -137,13 +139,13 @@ router.post('/register', function(req, res, next){
   });
 });
 
-router.post('/login', function(req, res, next){
+router.post('/login', function (req, res, next){
   if(!req.body.username || !req.body.password){
     return res.status(400).json({message: 'Please fill out all fields'});
   }
 
 console.log('calling passport)');
-  passport.authenticate('local', function(err, user, info){
+  passport.authenticate('local', function (err, user, info){
     if(err){ return next(err); }
 
     if(user){

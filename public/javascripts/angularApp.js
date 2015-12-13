@@ -150,7 +150,9 @@ function($http, auth) {
 		});
 	};
 
-	o.addComment = function(id, comment) {
+	o.addComment = function(id, parentId, comment) {
+		console.log(comment);
+		console.log(parentId);
 	  return $http.post('/posts/' + id + '/comments', comment, {
 	    headers: {Authorization: 'Bearer '+auth.getToken()}
 	  });
@@ -206,16 +208,23 @@ function($scope, posts, auth) {
 
 app.controller('PostsCtrl', ['$scope', 'posts', 'post', 'auth',
 function($scope, posts, post, auth) {
+
 	$scope.post = post;
+	$scope.replyBox = false;
 	$scope.isLoggedIn = auth.isLoggedIn;
+
+	$scope.reply = function () {
+		$scope.replyBox = true;
+	}
 
 	$scope.addComment = function() {
 		if ($scope.body === '') {
 			return;
 		}
 		posts.addComment(post._id, {
-			body : $scope.body,
-			author : 'user'
+			parentComment: parentId,
+			body: $scope.body,
+			author: 'user'
 		}).success(function(comment) {
 			$scope.post.comments.push(comment);
 		});
@@ -259,3 +268,35 @@ function($scope, auth) {
 	$scope.logOut = auth.logOut;
 }]);
 
+app.directive('reply', function () {
+	return {
+		restrict: "E",
+		scope: {
+			commentsArray: '=',
+			comment: '=',
+			currentReplyWidgetVisible: '='
+		},
+		template: '<div ng-show="currentReplyWidgetVisible==comment" class="publishComment"><input type="text" ng-model=contentForPublishing"/><button ng-click="publishReply(5, contentForPublishing)">Publish Reply</button></div>',
+		link: function (scope) {
+			scope.comment.replyWidgetVisible = false;
+			scope.$emit('publish', i, scope.comment.id, o);
+			}
+		}
+	});
+
+app.directive('comments', function () {
+	return {
+		restrict: 'E',
+		scope: true,
+		template: '<div id="{{comment.id}}" class="commentWrapper" ng-repeat="comment in comments">' +
+                                    'id: {{comment.id}} parentId: {{comment.parentId}}<br>>> {{comment.content}}<br>' +
+                                    '<button class="reply" ng-click="showReplyWidget(comment)">Reply</button>' +
+                                    '<reply-directive comments-array="comments" current-reply-widget-visible="currentReplyWidgetVisible" comment="comment"></reply-directive>' +
+                                '</div>',
+    link: function (scope) {
+    	scope.$on('publish', function (event, id, parentId, content) {
+    		scope.addComment(id, parentId, content);
+    	});
+    }
+	}
+})
